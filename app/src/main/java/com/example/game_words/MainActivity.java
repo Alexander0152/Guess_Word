@@ -1,20 +1,23 @@
 package com.example.game_words;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.icu.util.Calendar;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -27,6 +30,7 @@ import com.example.game_words.serviceLayer.LevelService;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
@@ -42,8 +46,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
 
-        TextView textVieResult = (TextView)findViewById(R.id.textViewResult);
-        outState.putString("result",textVieResult.getText().toString());
+        TextView textVieResult = (TextView) findViewById(R.id.textViewResult);
+        outState.putString("result", textVieResult.getText().toString());
 
         outState.putStringArrayList("guessedWords", (ArrayList<String>) guesedWords);
         outState.putInt("level", level);
@@ -64,12 +68,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         super.onSaveInstanceState(outState);
     }
+
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         // TODO Auto-generated method stub
         super.onRestoreInstanceState(savedInstanceState);
 
-        TextView textVieResult = (TextView)findViewById(R.id.textViewResult);
+        TextView textVieResult = (TextView) findViewById(R.id.textViewResult);
         textVieResult.setText(savedInstanceState.getString("result"));
 
         guesedWords = savedInstanceState.getStringArrayList("guessedWords");
@@ -98,19 +103,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu,menu); //запуск меню
+        getMenuInflater().inflate(R.menu.main_menu, menu); //запуск меню
         return true;//super.onCreateOptionsMenu(menu);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId())
-        {
+        switch (item.getItemId()) {
             case R.id.settingsMenuItem:
                 //показать диалоговое окно с настройкой уровня игры
                 break;
             case R.id.showHistoryMenuItem:
-                //показать активити-визитку
+                Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
+                startActivity(intent);
                 break;
             case R.id.settingsMenuHome:
                 showBackHomeDialog();
@@ -170,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final Button buttonEnter = (Button) findViewById(R.id.buttonEnter);
         buttonEnter.setOnClickListener(this);
 
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             showChooseLevelDialog();
         }
 
@@ -179,17 +185,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mAdapter = new DataAdapter(getApplicationContext(),
                 android.R.layout.simple_list_item_1, guesedWords);
         g.setAdapter(mAdapter);
-//        g.setOnItemSelectedListener(this);
-//        g.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View v,
-//                                    int position, long id) {
-//                // TODO Auto-generated method stub
-//                mSelectText.setText("Выбранный элемент: "
-//                        + mAdapter.getItem(position));
-//            }
-//        });
     }
 
     public void showChooseLevelDialog() {
@@ -239,6 +234,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+
     public void showBackHomeDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.home);
@@ -259,6 +255,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+
     public void updateTable() {
         final GridView g = (GridView) findViewById(R.id.gridViewGuessedWords);
         mAdapter = new DataAdapter(getApplicationContext(),
@@ -294,6 +291,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         levelList = levelService.getAllLevels(file);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onClick(View v) {
         TextView textViewResult = (TextView) findViewById(R.id.textViewResult);
@@ -304,6 +302,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         switch (v.getId()) {
             case R.id.button1:
+                addDataToDatabase();
 //                showPassedLevelDialog();
                 Button button1 = (Button) v;
                 buttonText = button1.getText().toString();
@@ -366,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 makeLettersButtonsEnable();
                 break;
             case R.id.buttonEnter:
-                if (checkIfWordExist(result.toLowerCase()) && !checkIfWordAlreadyGuessed(result)){
+                if (checkIfWordExist(result.toLowerCase()) && !checkIfWordAlreadyGuessed(result)) {
                     showGuessTost();
                     textViewResult.setText("");
                     fillButtonsWithLetters(levelList.get(level));
@@ -384,12 +383,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public void checkLevelPassed(){
-        if(guesedWords.size() == levelList.get(level).getWordsList().size()){
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void checkLevelPassed() {
+        if (guesedWords.size() == levelList.get(level).getWordsList().size()) {
+            addDataToDatabase();
             showPassedLevelDialog();
-        }
-        else return;
+        } else return;
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void addDataToDatabase() {
+        SQLiteDatabase db = getBaseContext().openOrCreateDatabase("app.db", MODE_PRIVATE, null);
+        db.execSQL("CREATE TABLE IF NOT EXISTS achievements (date_time TEXT, level INTEGER)");
+        //db.execSQL("delete from achievements");
+
+        Date currentTime = Calendar.getInstance().getTime();
+        String date = currentTime.toString();
+        String sql = String.format("INSERT INTO achievements VALUES ('%s', '%d');", date, level + 1);
+        db.execSQL(sql);
+
+        db.close();
+    }
+
     public void showGuessTost() {
         CharSequence text = getString(R.string.guessTost);
         int duration = Toast.LENGTH_SHORT;
@@ -417,6 +432,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         return false;
     }
+
     public boolean checkIfWordAlreadyGuessed(String word) {
         for (String str : guesedWords) {
             if (str.compareTo(word) == 0) {

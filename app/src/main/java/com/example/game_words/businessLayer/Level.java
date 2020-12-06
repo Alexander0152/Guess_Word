@@ -25,7 +25,7 @@ public class Level implements Serializable {
     public List<String> getWordsList(){
         return this.wordsList;
     }
-    public void setWordsListr(List<String> wordsList){
+    public void setWordsList(List<String> wordsList){
         this.wordsList = wordsList;
     }
 }
