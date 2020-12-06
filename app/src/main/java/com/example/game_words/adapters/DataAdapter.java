@@ -23,6 +23,9 @@ public class DataAdapter extends ArrayAdapter<String> {
     // Конструктор
     public DataAdapter(Context context, int textViewResourceId, List<String> words) {
         super(context, textViewResourceId, mContacts);
+        for(int i = 0; i < mContacts.length; i++){
+            mContacts[i] = null;
+        }
         int count = 0;
         for(String word: words) {
             mContacts[count] = word;

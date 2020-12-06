@@ -1,5 +1,6 @@
 package com.example.game_words;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -8,6 +9,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -19,7 +22,6 @@ import android.widget.Toast;
 
 import com.example.game_words.adapters.DataAdapter;
 import com.example.game_words.businessLayer.Level;
-import com.example.game_words.dataAccessLayer.LevelDao;
 import com.example.game_words.serviceLayer.LevelService;
 
 import java.io.File;
@@ -36,6 +38,86 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private TextView mSelectText;
     private DataAdapter mAdapter;
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+
+        TextView textVieResult = (TextView)findViewById(R.id.textViewResult);
+        outState.putString("result",textVieResult.getText().toString());
+
+        outState.putStringArrayList("guessedWords", (ArrayList<String>) guesedWords);
+        outState.putInt("level", level);
+
+        Button button1 = (Button) findViewById(R.id.button1);
+        Button button2 = (Button) findViewById(R.id.button2);
+        Button button3 = (Button) findViewById(R.id.button3);
+        Button button4 = (Button) findViewById(R.id.button4);
+        Button button5 = (Button) findViewById(R.id.button5);
+        Button button6 = (Button) findViewById(R.id.button6);
+
+        outState.putCharSequence("button1Text", button1.getText());
+        outState.putCharSequence("button2Text", button2.getText());
+        outState.putCharSequence("button3Text", button3.getText());
+        outState.putCharSequence("button4Text", button4.getText());
+        outState.putCharSequence("button5Text", button5.getText());
+        outState.putCharSequence("button6Text", button6.getText());
+
+        super.onSaveInstanceState(outState);
+    }
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        // TODO Auto-generated method stub
+        super.onRestoreInstanceState(savedInstanceState);
+
+        TextView textVieResult = (TextView)findViewById(R.id.textViewResult);
+        textVieResult.setText(savedInstanceState.getString("result"));
+
+        guesedWords = savedInstanceState.getStringArrayList("guessedWords");
+        mSelectText = (TextView) findViewById(R.id.info);
+        final GridView g = (GridView) findViewById(R.id.gridViewGuessedWords);
+        mAdapter = new DataAdapter(getApplicationContext(),
+                android.R.layout.simple_list_item_1, guesedWords);
+        g.setAdapter(mAdapter);
+
+        level = savedInstanceState.getInt("level");
+
+        Button button1 = (Button) findViewById(R.id.button1);
+        Button button2 = (Button) findViewById(R.id.button2);
+        Button button3 = (Button) findViewById(R.id.button3);
+        Button button4 = (Button) findViewById(R.id.button4);
+        Button button5 = (Button) findViewById(R.id.button5);
+        Button button6 = (Button) findViewById(R.id.button6);
+
+        button1.setText(savedInstanceState.getCharSequence("button1Text"));
+        button2.setText(savedInstanceState.getCharSequence("button2Text"));
+        button3.setText(savedInstanceState.getCharSequence("button3Text"));
+        button4.setText(savedInstanceState.getCharSequence("button4Text"));
+        button5.setText(savedInstanceState.getCharSequence("button5Text"));
+        button6.setText(savedInstanceState.getCharSequence("button6Text"));
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu,menu); //запуск меню
+        return true;//super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId())
+        {
+            case R.id.settingsMenuItem:
+                //показать диалоговое окно с настройкой уровня игры
+                break;
+            case R.id.showHistoryMenuItem:
+                //показать активити-визитку
+                break;
+            case R.id.settingsMenuHome:
+                showBackHomeDialog();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View v, int position,
@@ -88,7 +170,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final Button buttonEnter = (Button) findViewById(R.id.buttonEnter);
         buttonEnter.setOnClickListener(this);
 
-        showChooseLevelDialog();
+        if(savedInstanceState == null) {
+            showChooseLevelDialog();
+        }
 
         mSelectText = (TextView) findViewById(R.id.info);
         final GridView g = (GridView) findViewById(R.id.gridViewGuessedWords);
@@ -149,6 +233,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         builder.setNegativeButton(R.string.exit, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 System.exit(0);
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+    public void showBackHomeDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.home);
+        builder.setMessage("Are you sure you want to exit? All progress will be lost");
+        builder.setPositiveButton(R.string.home_button, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                Intent intent = getIntent();
+                finish();
+                startActivity(intent);
+            }
+        });
+        builder.setNegativeButton(R.string.back_to_game, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+
             }
         });
 
@@ -262,7 +366,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 makeLettersButtonsEnable();
                 break;
             case R.id.buttonEnter:
-                if (checkIfWordExist(result.toLowerCase())) {
+                if (checkIfWordExist(result.toLowerCase()) && !checkIfWordAlreadyGuessed(result)){
                     showGuessTost();
                     textViewResult.setText("");
                     fillButtonsWithLetters(levelList.get(level));
@@ -308,6 +412,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         List<String> wordsList = levelList.get(level).getWordsList();
         for (String str : wordsList) {
             if (str != null && str.compareTo(word) == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean checkIfWordAlreadyGuessed(String word) {
+        for (String str : guesedWords) {
+            if (str.compareTo(word) == 0) {
                 return true;
             }
         }

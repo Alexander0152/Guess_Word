@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/settingsMenuHome"
+        android:title="@string/settings"
+        android:icon="@drawable/ic_action_home"
+        android:orderInCategory="1"
+        app:showAsAction="ifRoom" /> //способ отображения пункта меню на AppBar
+    <item
+        android:id="@+id/settingsMenuItem"
+        android:title="@string/settings"
+        android:icon="@drawable/ic_action_name"
+        android:orderInCategory="1"
+        app:showAsAction="ifRoom" /> //способ отображения пункта меню на AppBar
+    <item
+        android:id="@+id/showHistoryMenuItem"
+        android:title="@string/show_history"
+        android:orderInCategory="2"
+        app:showAsAction="never"/> //способ отображения пункта меню на AppBar
+</menu>
+
