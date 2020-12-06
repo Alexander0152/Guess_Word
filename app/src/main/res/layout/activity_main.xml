@@ -106,23 +106,12 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.593" />
 
-    <GridView
-        android:layout_width="0dp"
-        android:layout_height="150dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.113" />
-
     <Button
         android:id="@+id/buttonEnter"
         android:layout_width="110dp"
         android:layout_height="54dp"
         android:background="@android:color/holo_green_light"
-        android:text="Enter"
+        android:text="@string/enter"
         android:textColor="@android:color/white"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -158,4 +147,30 @@
         app:layout_constraintVertical_bias="0.732"
         app:srcCompat="?attr/homeAsUpIndicator" />
 
+    <GridView
+        android:id="@+id/gridViewGuessedWords"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:columnWidth="55dp"
+        android:gravity="center"
+        android:horizontalSpacing="35dp"
+        android:numColumns="auto_fit"
+        android:paddingLeft="15dp"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.063" />
+    <!--    android:id="@+id/gridView1"-->
+    <!--    android:layout_width="match_parent"-->
+    <!--    android:layout_height="match_parent"-->
+    <!--    android:columnWidth="100dp"-->
+    <!--    android:gravity="center"-->
+    <!--    android:horizontalSpacing="5dp"-->
+    <!--    android:numColumns="auto_fit"-->
+    <!--    android:stretchMode="columnWidth"-->
+    <!--    android:verticalSpacing="35dp" >-->
 </androidx.constraintlayout.widget.ConstraintLayout>

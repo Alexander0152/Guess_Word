@@ -5,15 +5,19 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.game_words.adapters.DataAdapter;
 import com.example.game_words.businessLayer.Level;
 import com.example.game_words.dataAccessLayer.LevelDao;
 import com.example.game_words.serviceLayer.LevelService;
@@ -23,11 +27,26 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
     int level = 0;
     String fileName = "/List.txt";
     List<Level> levelList = null;
+    List<String> guesedWords = new ArrayList<>();
+
+    private TextView mSelectText;
+    private DataAdapter mAdapter;
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View v, int position,
+                               long id) {
+//        mSelectText.setText("Выбранный элемент: " + mAdapter.getItem(position));
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+//        mSelectText.setText("Выбранный элемент: ничего");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +89,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonEnter.setOnClickListener(this);
 
         showChooseLevelDialog();
+
+        mSelectText = (TextView) findViewById(R.id.info);
+        final GridView g = (GridView) findViewById(R.id.gridViewGuessedWords);
+        mAdapter = new DataAdapter(getApplicationContext(),
+                android.R.layout.simple_list_item_1, guesedWords);
+        g.setAdapter(mAdapter);
+//        g.setOnItemSelectedListener(this);
+//        g.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View v,
+//                                    int position, long id) {
+//                // TODO Auto-generated method stub
+//                mSelectText.setText("Выбранный элемент: "
+//                        + mAdapter.getItem(position));
+//            }
+//        });
     }
 
     public void showChooseLevelDialog() {
@@ -97,6 +133,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    public void showPassedLevelDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.congratulations);
+        builder.setMessage(R.string.theLevelPassed);
+        builder.setPositiveButton(R.string.nextLevel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                Intent intent = getIntent();
+                finish();
+                startActivity(intent);
+            }
+        });
+        builder.setNegativeButton(R.string.exit, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                System.exit(0);
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+    public void updateTable() {
+        final GridView g = (GridView) findViewById(R.id.gridViewGuessedWords);
+        mAdapter = new DataAdapter(getApplicationContext(),
+                android.R.layout.simple_list_item_1, guesedWords);
+        g.setAdapter(mAdapter);
     }
 
     public void fillButtonsWithLetters(Level level) {
@@ -137,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         switch (v.getId()) {
             case R.id.button1:
+//                showPassedLevelDialog();
                 Button button1 = (Button) v;
                 buttonText = button1.getText().toString();
                 newResult = result + buttonText;
@@ -200,13 +264,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.buttonEnter:
                 if (checkIfWordExist(result.toLowerCase())) {
                     showGuessTost();
-                    textViewResult.setText(""); /// добавить в датагрид
+                    textViewResult.setText("");
                     fillButtonsWithLetters(levelList.get(level));
                     makeLettersButtonsEnable();
+                    guesedWords.add(result);
+                    updateTable();
+                    checkLevelPassed();
                     break;
                 } else {
                     showNoSuchWordTost();
-
                 }
                 break;
             default:
@@ -214,6 +280,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    public void checkLevelPassed(){
+        if(guesedWords.size() == levelList.get(level).getWordsList().size()){
+            showPassedLevelDialog();
+        }
+        else return;
+    }
     public void showGuessTost() {
         CharSequence text = getString(R.string.guessTost);
         int duration = Toast.LENGTH_SHORT;
@@ -235,7 +307,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean checkIfWordExist(String word) {
         List<String> wordsList = levelList.get(level).getWordsList();
         for (String str : wordsList) {
-            if (str.compareTo(word) == 0) {
+            if (str != null && str.compareTo(word) == 0) {
                 return true;
             }
         }

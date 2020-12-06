@@ -3,4 +3,9 @@
     <string name="chooseLevel">Choose level</string>
     <string name="guessTost">Guess!</string>
     <string name="noSuchWordTost">No such word!</string>
+    <string name="enter">Enter</string>
+    <string name="congratulations">Congratulations!</string>
+    <string name="theLevelPassed">The level passed</string>
+    <string name="nextLevel">next level</string>
+    <string name="exit">exit game</string>
 </resources>
