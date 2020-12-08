@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView mSelectText;
     private DataAdapter mAdapter;
 
+    public static final String WHERE_MY_CAT_ACTION = "com.example.game_words.action.SETTINGS";
+    public static final String ALARM_MESSAGE = "You typed settings item!";
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
 
@@ -112,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.settingsMenuItem:
-                //показать диалоговое окно с настройкой уровня игры
+                sendMessage();
                 break;
             case R.id.showHistoryMenuItem:
                 Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
@@ -123,6 +125,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void sendMessage() {
+        Intent intent = new Intent();
+        intent.setAction(WHERE_MY_CAT_ACTION);
+        intent.putExtra("com.example.game_words.broadcast.Message", ALARM_MESSAGE);
+        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        sendBroadcast(intent);
     }
 
     @Override
